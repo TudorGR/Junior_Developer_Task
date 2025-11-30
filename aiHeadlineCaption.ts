@@ -1,19 +1,32 @@
 import Groq from "groq-sdk";
 import "dotenv/config";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const hasGroqKey = !!process.env.GROQ_API_KEY;
+const groq = hasGroqKey ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
 
-export async function aiHeadline(comments: string[]) {
+export async function aiHeadline(comments) {
+    if (!hasGroqKey) {
+        console.log(
+            "⚠️ Warning: GROQ_API_KEY not set in .env. Using default comments for headlines. ⚠️\n"
+        );
+        return JSON.stringify(comments.map((c) => c.minute + "' " + c.comment));
+    }
     const chatCompletion = await getGroqChatCompletion(comments);
     return chatCompletion.choices[0]?.message?.content || "";
 }
 
-export async function aiCaption(comments: string[]) {
+export async function aiCaption(comments) {
+    if (!hasGroqKey) {
+        console.log(
+            "⚠️ Warning: GROQ_API_KEY not set in .env. Using default comments for captions. ⚠️\n"
+        );
+        return JSON.stringify(comments.map((c) => c.minute + "' " + c.comment));
+    }
     const chatCompletion = await getGroqChatCompletion2(comments);
     return chatCompletion.choices[0]?.message?.content || "";
 }
 
-function getGroqChatCompletion(comments: string[]) {
+function getGroqChatCompletion(comments) {
     return groq.chat.completions.create({
         messages: [
             {
@@ -30,7 +43,7 @@ function getGroqChatCompletion(comments: string[]) {
     });
 }
 
-function getGroqChatCompletion2(comments: string[]) {
+function getGroqChatCompletion2(comments) {
     return groq.chat.completions.create({
         messages: [
             {

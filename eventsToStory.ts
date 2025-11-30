@@ -67,33 +67,33 @@ function findImageForPlayer(playerId) {
 export default async function eventsToStory(n = 5) {
     try {
         fs.readFileSync("./data/match_events.json");
-        console.log("Match_events.json exists");
+        console.log("Match_events.json exists\n");
         return writeStoryFile(
             await createStoryObject("./data/match_events.json", n)
         );
     } catch (e) {
-        console.log("Match_events.json does not exist");
+        console.log("Match_events.json does not exist\n");
         return null;
     }
 }
 
 async function writeStoryFile(story) {
     if (!story) return;
-    console.log("Creating Story.json file...");
+    console.log("Creating Story.json file...\n");
     try {
         await fs.writeFileSync("./out/story.json", JSON.stringify(story));
-        console.log("Story.json created");
+        console.log("Story.json created\n");
         return story;
     } catch (e) {
         console.log(e);
-        console.log("Failed to create Story.json");
+        console.log("Failed to create Story.json\n");
         return null;
     }
 }
 
 async function createStoryObject(eventsPath, n) {
     const eventsFileLocation = eventsPath;
-    console.log("Reading match_events.json");
+    console.log("Reading match_events.json\n");
     try {
         const events = JSON.parse(
             fs.readFileSync(eventsFileLocation, { encoding: "utf8" })
@@ -134,8 +134,8 @@ async function createStoryObject(eventsPath, n) {
         );
         obj.metrics.highlights = highlights.length;
 
-        const evalResults = evaluateCaptions(highlights);
-        console.log("Caption Evaluation Results:", evalResults);
+        // const evalResults = evaluateCaptions(highlights);
+        // console.log("Caption Evaluation Results:", evalResults);
 
         if (highlights.length == 0) {
             obj.pages.push({
@@ -150,7 +150,7 @@ async function createStoryObject(eventsPath, n) {
         return obj;
     } catch (error) {
         console.log(error);
-        console.log(`Failed to read ${eventsFileLocation}`);
+        console.log(`Failed to read ${eventsFileLocation}\n`);
         return null;
     }
 }
@@ -198,7 +198,7 @@ async function createHighlights(events, n = 5) {
         const json = await aiHeadline(comments);
         headlines = JSON.parse(json);
     } catch (error) {
-        console.log("Failed to generate headlines");
+        console.log("Failed to generate headlines\n");
         headlines = comments;
     }
 
@@ -207,7 +207,7 @@ async function createHighlights(events, n = 5) {
         const json = await aiCaption(comments);
         captions = JSON.parse(json);
     } catch (error) {
-        console.log("Failed to generate captions");
+        console.log("Failed to generate captions\n");
         captions = comments;
     }
 
