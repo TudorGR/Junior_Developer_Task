@@ -1,139 +1,419 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Story Pack Preview</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 0; }
-    header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px; }
-    #title { font-weight: 600; }
-    main { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 60px); padding: 24px; }
-    .card { max-width: 720px; width: 100%; border: 1px solid #eee; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
-    .page { display: none; }
-    .page.active { display: block; }
-    img { max-width: 100%; border-radius: 8px; }
-    .meta { color: #666; font-size: 14px; margin-top: 8px; }
-    .nav { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
-    button { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-    button:disabled { opacity: .5; cursor: default; }
-    .dots { display: flex; gap: 6px; align-items: center; }
-    .dot { width: 8px; height: 8px; border-radius: 4px; background: #ddd; }
-    .dot.active { background: #333; }
-    #loader { font-size: 14px; color: #444; }
-    .headline { font-size: 20px; font-weight: 600; margin: 8px 0; }
-    .caption { font-size: 16px; margin: 6px 0; }
-    footer { text-align: center; font-size: 12px; color: #777; padding: 12px; }
-    #packMeta { font-size: 12px; color: #777; }
-  </style>
-</head>
-<body>
-  <header>
-    <input type="file" id="fileInput" accept="application/json"/>
-    <div id="title">Load a pack.json to preview</div>
-    <div id="packMeta"></div>
-  </header>
-  <main>
-    <div class="card">
-      <div id="pages"></div>
-      <div class="nav">
-        <button id="prevBtn" disabled>&larr; Prev</button>
-        <div class="dots" id="dots"></div>
-        <button id="nextBtn" disabled>Next &rarr;</button>
-      </div>
-      <div class="meta">Tip: Use left/right arrow keys.</div>
-    </div>
-  </main>
-  <footer>Story Pack Preview</footer>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Story Pack Preview</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: system-ui, -apple-system, Segoe UI, Roboto,
+                    sans-serif;
+                margin: 0;
+                padding: 0;
+                background: #181818;
+                min-height: 100vh;
+                min-width: 100vw;
+            }
+            header {
+                position: absolute;
+                padding: 3vh 4vh;
+                color: white;
+                display: flex;
+                width: 100%;
+                align-items: center;
+                gap: 12px;
+                z-index: 10;
+                max-width: 50vw;
+            }
+            #fileInput {
+                color: #555;
+                border-radius: 1vh;
+                font-size: 2vh;
+            }
+            main {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                background-color: #181818;
+                overflow: scroll;
+            }
+            .card {
+                position: relative;
+                height: 100vh;
+                aspect-ratio: 9/16;
+                max-height: 90vh;
+                background-color: black;
+                padding: 0;
+                border-radius: 2vh;
+                box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+                display: flex;
+                flex-direction: column;
+            }
+            #pages {
+                flex: 1;
+                width: 100%;
+            }
+            .page {
+                display: none;
+                position: relative;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 100%;
+                width: 100%;
+                box-sizing: border-box;
+                background: transparent;
+                color: #fff;
+                flex-direction: column;
+                justify-content: flex-end;
+                align-items: center;
+            }
+            .page::after {
+                cursor: pointer;
+                content: "Read More";
+                background-color: white;
+                width: 90%;
+                border-radius: 0.25vh;
+                border: none;
+                margin: 0 auto;
+                margin-bottom: 3vh;
+                color: black;
+                z-index: 5;
+                text-align: center;
+                font-size: 3vh;
+                padding: 1.5vh 0;
+                font-weight: bold;
+            }
+            .page.active {
+                display: flex;
+                animation: fadeIn 0.3s;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+            img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 2vh;
+                object-fit: cover;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            }
+            .meta {
+                color: #bbb;
+                font-size: 3vh;
+                margin-top: 10px;
+            }
+            .headline {
+                padding: 4vh;
+                font-size: 4vh;
+                font-weight: 700;
+                text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85),
+                    0 2px 8px rgba(0, 0, 0, 0.5);
+                z-index: 5;
+            }
+            .caption {
+                font-size: 4vh;
+                margin: 10px 0 0 0;
+                color: #eee;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+                z-index: 5;
+            }
+            .dots {
+                padding: 0 2vh;
+                position: absolute;
+                top: 2vh;
+                left: 0;
+                right: 0;
+                display: flex;
+                gap: 1vh;
+                align-items: center;
+                justify-content: center;
+                z-index: 2;
+            }
+            .dot {
+                flex: 1;
+                height: 0.25vh;
+                border-radius: 1vh;
+                background: #555;
+                opacity: 0.5;
+                transition: background 0.2s, opacity 0.2s;
+            }
+            .dot.active {
+                background: #fff;
+                opacity: 1;
+            }
+            .nav {
+                position: absolute;
+                bottom: 50%;
+                left: -10vh;
+                right: -10vh;
+                margin-top: 2vh;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 4vh;
+            }
 
-  <script>
-    let pack = null;
-    let idx = 0;
-    const fileInput = document.getElementById('fileInput');
-    const pagesEl = document.getElementById('pages');
-    const dotsEl = document.getElementById('dots');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const titleEl = document.getElementById('title');
-    const packMetaEl = document.getElementById('packMeta');
+            .card-nav-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                position: relative;
+            }
 
-    function render() {
-      if (!pack) return;
-      pagesEl.innerHTML = '';
-      dotsEl.innerHTML = '';
-      pack.pages.forEach((page, i) => {
-        const s = document.createElement('div');
-        s.className = 'page' + (i === idx ? ' active' : '');
-        const h = document.createElement('div');
-        h.className = 'headline';
-        if (page.type === 'cover') {
-          h.textContent = page.headline || 'Cover';
-          s.appendChild(h);
-          if (page.image) {
-            const img = document.createElement('img'); img.src = page.image; s.appendChild(img);
-          }
-        } else if (page.type === 'highlight') {
-          h.textContent = (page.minute != null ? `[${page.minute}’] ` : '') + (page.headline || 'Highlight');
-          s.appendChild(h);
-          if (page.image) {
-            const img = document.createElement('img'); img.src = page.image; s.appendChild(img);
-          }
-          const c = document.createElement('div'); c.className = 'caption'; c.textContent = page.caption || ''; s.appendChild(c);
-          if (page.explanation) {
-            const e = document.createElement('div'); e.className = 'meta'; e.textContent = 'Why this ranked: ' + page.explanation; s.appendChild(e);
-          }
-        } else {
-          h.textContent = page.headline || 'Info';
-          s.appendChild(h);
-          const body = document.createElement('div'); body.className = 'caption'; body.textContent = page.body || ''; s.appendChild(body);
-        }
-        pagesEl.appendChild(s);
+            @media (max-width: 600px) {
+                .card-nav-container {
+                    flex-direction: column;
+                }
+                .nav {
+                    position: absolute;
+                    bottom: 50%;
+                    left: 0;
+                    right: 0;
+                    margin-top: 0;
+                    transform: translateY(50%);
+                    z-index: 4;
+                    gap: 0;
+                    justify-content: space-between;
+                    padding: 0 2vh;
+                    pointer-events: none;
+                }
+                .nav button {
+                    pointer-events: auto;
+                }
+            }
+            button {
+                height: 7vh;
+                width: 7vh;
+                border-radius: 50%;
+                border: none;
+                background: rgba(255, 255, 255, 0.15);
+                color: #fff;
+                font-size: 4vh;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s;
+            }
+            button:active {
+                background: rgba(255, 255, 255, 0.3);
+            }
+            button:disabled {
+                opacity: 0.2;
+                cursor: default;
+            }
+            #title {
+                position: absolute;
+                top: 5vh;
+                left: 2.5vh;
+                right: 0;
+                text-align: center;
+                font-weight: 600;
+                font-size: 2vh;
+                text-align: start;
+                color: #fff;
+                z-index: 2;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+                pointer-events: none;
+            }
+            #loader {
+                font-size: 3vh;
+                color: #bbb;
+                text-align: center;
+                margin-top: 40vh;
+            }
+            .image-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                pointer-events: none;
+                border-radius: 2vh;
+                z-index: 1;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.45) 0%,
+                    rgba(0, 0, 0, 0.1) 15%,
+                    rgba(0, 0, 0, 0) 50%,
+                    rgba(0, 0, 0, 0.45) 65%,
+                    rgba(0, 0, 0, 0.75) 100%
+                );
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <input type="file" id="fileInput" accept="application/json" />
+        </header>
+        <main>
+            <div class="card-nav-container">
+                <div class="card">
+                    <div class="dots" id="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div id="title">Load a pack.json to preview</div>
+                    <div id="pages"></div>
+                </div>
+                <div class="nav">
+                    <button id="prevBtn" disabled>&larr;</button>
+                    <button id="nextBtn" disabled>&rarr;</button>
+                </div>
+            </div>
+        </main>
 
-        const dot = document.createElement('div');
-        dot.className = 'dot' + (i === idx ? ' active' : '');
-        dot.addEventListener('click', () => { idx = i; updateNav(); });
-        dotsEl.appendChild(dot);
-      });
-      updateNav();
-    }
+        <script>
+            let pack = null;
+            let idx = 0;
+            const fileInput = document.getElementById("fileInput");
+            const pagesEl = document.getElementById("pages");
+            const dotsEl = document.getElementById("dots");
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const titleEl = document.getElementById("title");
 
-    function updateNav() {
-      const n = pack ? pack.pages.length : 0;
-      prevBtn.disabled = idx <= 0;
-      nextBtn.disabled = idx >= n - 1;
-      Array.from(document.querySelectorAll('.page')).forEach((el, i) => {
-        el.classList.toggle('active', i === idx);
-      });
-      Array.from(document.querySelectorAll('.dot')).forEach((el, i) => {
-        el.classList.toggle('active', i === idx);
-      });
-    }
+            function render() {
+                if (!pack) return;
+                pagesEl.innerHTML = "";
+                dotsEl.innerHTML = "";
+                pack.pages.forEach((page, i) => {
+                    const s = document.createElement("div");
+                    if (page.image) {
+                        const img = document.createElement("img");
+                        img.src = page.image;
+                        s.appendChild(img);
 
-    prevBtn.addEventListener('click', () => { if (idx > 0) { idx--; updateNav(); }});
-    nextBtn.addEventListener('click', () => { if (pack && idx < pack.pages.length - 1) { idx++; updateNav(); }});
+                        const overlay = document.createElement("div");
+                        overlay.className = "image-overlay";
+                        s.appendChild(overlay);
+                    }
+                    s.className = "page" + (i === idx ? " active" : "");
+                    const h = document.createElement("div");
+                    h.className = "headline";
+                    if (page.type === "cover") {
+                        h.textContent = page.headline || "Cover";
+                        s.appendChild(h);
+                        if (page.image) {
+                            const img = document.createElement("img");
+                            img.src = page.image;
+                            s.appendChild(img);
+                        }
+                    } else if (page.type === "highlight") {
+                        h.textContent =
+                            (page.minute != null ? `[${page.minute}’] ` : "") +
+                            (page.headline || "Highlight");
+                        s.appendChild(h);
+                        if (page.image) {
+                            const img = document.createElement("img");
+                            img.src = page.image;
+                            s.appendChild(img);
+                        }
+                        const c = document.createElement("div");
+                        c.className = "caption";
+                        c.textContent = page.caption || "";
+                        // s.appendChild(c);
+                        if (page.explanation) {
+                            const e = document.createElement("div");
+                            e.className = "meta";
+                            e.textContent =
+                                "Why this ranked: " + page.explanation;
+                            // s.appendChild(e);
+                        }
+                    } else {
+                        h.textContent = page.headline || "Info";
+                        s.appendChild(h);
+                        const body = document.createElement("div");
+                        body.className = "caption";
+                        body.textContent = page.body || "";
+                        s.appendChild(body);
+                    }
+                    pagesEl.appendChild(s);
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') prevBtn.click();
-      if (e.key === 'ArrowRight') nextBtn.click();
-    });
+                    const dot = document.createElement("div");
+                    dot.className = "dot" + (i === idx ? " active" : "");
+                    dot.addEventListener("click", () => {
+                        idx = i;
+                        updateNav();
+                    });
+                    dotsEl.appendChild(dot);
+                });
+                updateNav();
+            }
 
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        try {
-          pack = JSON.parse(evt.target.result);
-          idx = 0;
-          titleEl.textContent = pack.title || 'Story Pack';
-          packMetaEl.textContent = `${pack.pack_id || ''}`;
-          render();
-        } catch (err) {
-          alert('Invalid JSON: ' + err.message);
-        }
-      };
-      reader.readAsText(file);
-    });
-  </script>
-</body>
+            function updateNav() {
+                const n = pack ? pack.pages.length : 0;
+                prevBtn.disabled = idx <= 0;
+                nextBtn.disabled = idx >= n - 1;
+                Array.from(document.querySelectorAll(".page")).forEach(
+                    (el, i) => {
+                        el.classList.toggle("active", i === idx);
+                    }
+                );
+                Array.from(document.querySelectorAll(".dot")).forEach(
+                    (el, i) => {
+                        el.classList.toggle("active", i === idx);
+                    }
+                );
+            }
+
+            prevBtn.addEventListener("click", () => {
+                if (idx > 0) {
+                    idx--;
+                    updateNav();
+                }
+            });
+            nextBtn.addEventListener("click", () => {
+                if (pack && idx < pack.pages.length - 1) {
+                    idx++;
+                    updateNav();
+                }
+            });
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "ArrowLeft") prevBtn.click();
+                if (e.key === "ArrowRight") nextBtn.click();
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    try {
+                        pack = JSON.parse(evt.target.result);
+                        idx = 0;
+                        titleEl.textContent = pack.title || "Story Pack";
+                        render();
+                    } catch (err) {
+                        alert("Invalid JSON: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            });
+        </script>
+    </body>
 </html>
